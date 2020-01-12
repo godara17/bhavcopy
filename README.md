@@ -1,5 +1,4 @@
-# This project is about fetching equity bhai copy data from bse and enables 
-# search results on the web page using cherrypy
+# This project is about fetching equity bhai copy data from bse and enables search results on the web page using cherrypy
 
 How to Use it?
 clone the repo
