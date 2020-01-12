@@ -1,0 +1,17 @@
+body{
+padding:20px 20px;
+}
+  
+.warning-no-result[visible='false'],
+.no-result{
+display:none;
+}
+
+.warning-no-result[visible='true']{
+display:table-row;
+}
+
+.counter{
+padding:8px; 
+color:#ccc;
+}
