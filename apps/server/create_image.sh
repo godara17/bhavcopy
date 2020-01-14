@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-image_name=server
+image_name=cherry_server
 image_tag=0.0.1
 
 # copy common and utils inside app directory
