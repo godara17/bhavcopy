@@ -5,6 +5,9 @@ import redis
 import os
 
 BASE_PATH = os.getenv("BASE_PATH")
+REDIS_HOST = os.getenv("REDIS_HOST")
+REDIS_PORT = os.getenv("REDIS_PORT")
+
 log_data = dict(
     logging_conf=BASE_PATH + "/utils/conf/logging.conf",
     log_file=BASE_PATH + "/logs/app_logs.log",
@@ -28,7 +31,7 @@ class EquityBhavCopySchema:
         self.low = info["low"] if "low" in info else ""
         self.high = info["high"] if "high" in info else ""
         self.date = info["date"] if "date" in info else ""
-     
+
 
 class EquityBhavCopyDBManager:
     def __init__(self):
@@ -38,8 +41,10 @@ class EquityBhavCopyDBManager:
         self.last_upd_ts = "equity_bhv_cp_last_upd_ts"
 
     def get_redis_instance(self):
-        return redis.Redis()
-    
+        return redis.Redis(
+            host=REDIS_HOST, port=REDIS_PORT, password="redis@54321", db=0
+        )
+
     def insert_record(self, info):
         try:
             ri = self.get_redis_instance()
@@ -57,7 +62,7 @@ class EquityBhavCopyDBManager:
         except Exception as e:
             logger.error("Error while inserting records")
             logger.error(e)
-    
+
     def remove_redis_data(self):
         ri = self.get_redis_instance()
         try:
@@ -67,19 +72,16 @@ class EquityBhavCopyDBManager:
         except Exception as e:
             logger.error("Error while removing redis records")
             logger.error(e)
-        
+
     def delete_record(self, info):
         pass
-    
+
     def search_by_name(self, name):
         records = []
         ri = self.get_redis_instance()
         try:
             search_key = self.s_index_start + name + "*"
-            matched_keys = [
-                key.decode() 
-                for key in ri.keys(search_key)
-            ]
+            matched_keys = [key.decode() for key in ri.keys(search_key)]
             for key in matched_keys:
                 try:
                     record_index = ri.get(key)
@@ -87,18 +89,20 @@ class EquityBhavCopyDBManager:
                     record = self.format_record(raw_record)
                     records.append(record)
                 except Exception as e:
-                    logger.error("Error while fetching record from matched keys")
+                    logger.error(
+                        "Error while fetching record from matched keys"
+                    )
                     logger.error(e)
         except Exception as e:
             logger.error("Error while searching record in redis")
             logger.error(e)
         return records
-    
+
     def get_top_records(self, n=10):
         records = []
         ri = self.get_redis_instance()
         try:
-            codes = ri.lrange(self.ol_name, 0, n-1)
+            codes = ri.lrange(self.ol_name, 0, n - 1)
             for code in codes:
                 key = self.p_index_start + code.decode()
                 record = ri.hgetall(key)
@@ -107,7 +111,7 @@ class EquityBhavCopyDBManager:
             logger.error("Error while getting top records")
             logger.error(e)
         return records
-    
+
     def format_record(self, raw_record):
         record = dict()
         for k, v in raw_record.items():
@@ -133,6 +137,7 @@ class EquityBhavCopyDBManager:
             logger.error(e)
         return ts
 
+
 # def decode_redis(src):
 #     if isinstance(src, list):
 #         rv = list()
@@ -150,19 +155,18 @@ class EquityBhavCopyDBManager:
 #         raise Exception("type not handled: " +type(src))
 
 # def search_by_name(self, name):
-    #     record = None
-    #     ri = self.get_redis_instance()
-    #     try:
-    #         s_key = self.s_index_start + name
-    #         record_index = ri.get(s_key)
-    #         if not record_index:
-    #             return
-    #         raw_record = ri.hgetall(record_index.decode())
-    #         if not raw_record:
-    #             return
-    #         record = self.format_record(raw_record)
-    #     except Exception as e:
-    #         logger.error("Error while searching record in redis")
-    #         logger.error(e)
-    #     return record
-    
+#     record = None
+#     ri = self.get_redis_instance()
+#     try:
+#         s_key = self.s_index_start + name
+#         record_index = ri.get(s_key)
+#         if not record_index:
+#             return
+#         raw_record = ri.hgetall(record_index.decode())
+#         if not raw_record:
+#             return
+#         record = self.format_record(raw_record)
+#     except Exception as e:
+#         logger.error("Error while searching record in redis")
+#         logger.error(e)
+#     return record

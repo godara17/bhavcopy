@@ -1,0 +1,3 @@
+# crontab for monitoring docker
+0 * * * * cd ~/bhavcopy/ops && /bin/bash start_scraping.sh
+*/10 3-6 * * * cd ~/bhavcopy/ops && /bin/bash start_scraping.sh
