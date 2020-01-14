@@ -89,6 +89,7 @@ if __name__ == "__main__":
             "tools.response_headers.on": True,
             "tools.response_headers.headers": [("Content-Type", "text/plain")],
         },
+        "/favicon.ico": {"tools.staticfile.on": False},
     }
     equity = BhavCopyEquity()
     equity.list = ListService()
