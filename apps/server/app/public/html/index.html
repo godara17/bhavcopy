@@ -1,29 +1,73 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link href="/static/css/style.css" rel="stylesheet">
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
     <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     
     <script type="text/javascript">
       $(document).ready(() => {
+        $.fn.populateTable = function(resp) {
+          let table = $("#table tbody")
+          table.empty()
+          if (resp["records"].length > 0) {
+            let count = 0
+            $.each(resp["records"], ((idx, elem) => {
+              count += 1
+              if (parseFloat(elem.open) < parseFloat(elem.close)) {
+                table.append(
+                  "<tr>"
+                  +"<td>"+count+"</td>"
+                  +"<td>"+elem.date+"</td>"
+                  +"<td>"+elem.code+"</td>"
+                  +"<td style=\"color:#55ae55;\">"+elem.name+"</td>"
+                  +"<td>"+elem.low+"</td>"
+                  +"<td>"+elem.high+"</td>"
+                  +"<td>"+elem.open+"</td>"
+                  +"<td style=\"color:#55ae55;\">"+elem.close+"</td>"
+                  +"</tr>"
+                )
+              } else if (parseFloat(elem.open) > parseFloat(elem.close)) {
+                table.append(
+                  "<tr>"
+                  +"<td>"+count+"</td>"
+                  +"<td>"+elem.date+"</td>"
+                  +"<td>"+elem.code+"</td>"
+                  +"<td style=\"color:#fc401c;\">"+elem.name+"</td>"
+                  +"<td>"+elem.low+"</td>"
+                  +"<td>"+elem.high+"</td>"
+                  +"<td>"+elem.open+"</td>"
+                  +"<td style=\"color:#fc401c;\">"+elem.close+"</td>"
+                  +"</tr>"
+                )
+              } else {
+                // no effect on the share price
+                table.append(
+                  "<tr>"
+                  +"<td>"+count+"</td>"
+                  +"<td>"+elem.date+"</td>"
+                  +"<td>"+elem.code+"</td>"
+                  +"<td>"+elem.name+"</td>"
+                  +"<td>"+elem.low+"</td>"
+                  +"<td>"+elem.high+"</td>"
+                  +"<td>"+elem.open+"</td>"
+                  +"<td>"+elem.close+"</td>"
+                  +"</tr>"
+                )
+              }
+            }))
+            $(".warning-no-result").attr('visible','false')
+          } else {
+            $(".warning-no-result").attr('visible','true')
+          }
+        }
+
         $.fn.getRecordsList = function() {
           $.get("/list")
           .done(((resp) => {
             if (resp["status"] == "SUCCESS") {
-              if (resp["records"].length > 0) {
-                let table = $("#table tbody")
-                table.empty()
-                let count = 0
-                $.each(resp["records"], ((idx, elem) => {
-                  count += 1
-                  table.append("<tr><td>"+count+"</td><td>"+elem.date+"</td><td>"+elem.code+"</td><td>"+elem.name+"</td><td>"+elem.low+"</td><td>"+elem.high+"</td><td>"+elem.open+"</td><td>"+elem.close+"</td></tr>")
-                }))
-                $(".warning-no-result").attr('visible','false')
-              } else {
-                $(".warning-no-result").attr('visible','true')
-              }
+              $.fn.populateTable(resp)
               if (resp["last_upd_ts"]) {
                 document.getElementById('last-update-time').innerHTML = resp["last_upd_ts"]
               }
@@ -35,18 +79,7 @@
           $.get("/search", {"name": companyName})
           .done(((resp) => {
             if (resp["status"] == "SUCCESS" && resp["records"] != null) {
-              let table = $("#table tbody")
-              table.empty()
-              if (resp["records"].length > 0) {
-                let count = 0
-                $.each(resp["records"], ((idx, elem) => {
-                  count += 1
-                  table.append("<tr><td>"+count+"</td><td>"+elem.date+"</td><td>"+elem.code+"</td><td>"+elem.name+"</td><td>"+elem.low+"</td><td>"+elem.high+"</td><td>"+elem.open+"</td><td>"+elem.close+"</td></tr>")
-                }))
-                $(".warning-no-result").attr('visible','false')
-              } else {
-                $(".warning-no-result").attr('visible','true')
-              }
+              $.fn.populateTable(resp)
             }
           }))
         }
@@ -75,32 +108,52 @@
     </script>
   </head>
   <body>
-    <div class="form-group pull-middle">
-      <input type="text" class="search form-control" placeholder="Search Company Name" 
-      id="company-name", name="companyName">
+    <div class="header-container">
+      <div class="col-md-12 col-xs-12">
+        <div class="form-group pull-left">
+          <p style="font-size: 20px;">Bhav Copy</p>
+        </div>
+      </div>
     </div>
-    <div class="form-group pull-right">
-      <p>As on <label id="last-update-time"></label></p>
+    <hr>
+    <div class="center-container">
+      <div class="top-container">
+        <div class="col-md-3 col-xs-3"></div>
+        <div class="col-md-6 col-xs-6">
+          <div class="form-group pull-middle">
+            <input type="text" class="search form-control" placeholder="Search Company Name" 
+            id="company-name", name="companyName">
+          </div>
+        </div>
+        <div class="col-md-3 col-xs-3">
+          <div class="form-group pull-right">
+            <p>As on <label id="last-update-time"></label></p>
+          </div>
+        </div>
+      </div>
+      <!-- <span class="pull-right"></span> -->
+      <table id="table" class="table table-hover table-bordered results">
+        <thead>
+          <tr>
+            <th class="col-md-1 col-xs-1">#</th>
+            <th class="col-md-2 col-xs-2">Date</th>
+            <th class="col-md-2 col-xs-2">Code</th>
+            <th class="col-md-2 col-xs-2">Name</th>
+            <th class="col-md-2 col-xs-2">Low</th>
+            <th class="col-md-1 col-xs-1">High</th>
+            <th class="col-md-1 col-xs-1">Open</th>
+            <th class="col-md-1 col-xs-1">Close</th>
+          </tr>
+          <tr class="warning-no-result">
+            <td colspan="12"><i class="fa fa-warning"></i> No result</td>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
     </div>
-    <span class="pull-right"></span>
-    <table id="table" class="table table-hover table-bordered results">
-      <thead>
-        <tr>
-          <th class="col-md-1 col-xs-1">#</th>
-          <th class="col-md-2 col-xs-2">Date</th>
-          <th class="col-md-2 col-xs-2">Code</th>
-          <th class="col-md-2 col-xs-2">Name</th>
-          <th class="col-md-2 col-xs-2">Low</th>
-          <th class="col-md-1 col-xs-1">High</th>
-          <th class="col-md-1 col-xs-1">Open</th>
-          <th class="col-md-1 col-xs-1">Close</th>
-        </tr>
-        <tr class="warning-no-result">
-          <td colspan="12"><i class="fa fa-warning"></i> No result</td>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
+    <hr>
+    <div class="footer-container">
+    </div>
   </body>
 </html>
